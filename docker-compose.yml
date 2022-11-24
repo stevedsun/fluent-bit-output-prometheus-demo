@@ -1,0 +1,29 @@
+version: '3.3'
+
+services:
+  fluentbit:
+    image: fluentbitdev/fluent-bit:x86_64-master
+    container_name: fluentbit
+    command: /fluent-bit/bin/fluent-bit -v -e /fluent-bit/bin/out_prom_exporter.so -i cpu -o promexporter
+    ports:
+      - 8989:8989
+    networks:
+      - exporter-network
+    volumes:
+      - ./out_prom_exporter.so:/fluent-bit/bin/out_prom_exporter.so
+
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus:latest
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+    networks:
+      - exporter-network
+    ports:
+      - 9090:9090
+
+networks:
+  exporter-network:
+    driver: bridge
